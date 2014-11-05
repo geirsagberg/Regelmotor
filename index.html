@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Regelmotor</title>
+	<style>
+		.input {
+			width: 3em;
+		}
+	</style>
+</head>
+<body>
+	
+	<div data-bind="visible: true" style="display: none">
+		hvis 
+		<!-- ko if: selectedPredicate() == 1 -->
+		<select data-bind="options: comparisons, value: selectedComparison"></select>
+		<input class="input" type="number" data-bind="value: antallTidligereSøknader">
+		<!-- /ko -->
+		<select data-bind="options: predicates, 
+		value: selectedPredicate,
+		optionsText: 'text',
+		optionsValue: 'id',
+		optionsCaption: 'Velg...'"></select>
+		<span data-bind="if: selectedPredicate() == 1">
+			har samme 
+			<div data-bind="foreach: properties" style="display: inline-block; vertical-align: middle;">
+				<div>
+					<label>
+						<input type="checkbox" data-bind="value: $data">
+						<span data-bind="text: $data"></span>
+					</label>
+				</div>
+			</div>
+		</span>
+		<!-- ko if: selectedPredicate() == 2 -->
+		<span data-bind="foreach: propertyChecks">
+			<span data-bind="visible: $index() == 0">har</span>
+			<span data-bind="visible: $index() != 0">og</span>
+			<select data-bind="options: $root.properties, value: selectedProperty"></select>
+			<!-- ko if: selectedProperty() == 'tiltak' -->
+			<select data-bind="options: tiltak"></select>
+			<!-- /ko -->
+			<!-- ko ifnot: selectedProperty() == 'tiltak' -->
+			<select data-bind="options: $root.comparisons, value: selectedPropertyComparison"></select>
+			<input class="input" data-bind="value: selectedPropertyValue">
+			<!-- /ko -->
+		</span>
+		<!-- /ko -->
+		<button data-bind="click: addPropertyCheck">+</button>
+	</div>
+
+
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.2.0/knockout-min.js"></script>
+	<script>
+		ko.safeObservable = function(initialValue) {
+			var result = ko.observable(initialValue);
+			result.safe = ko.pureComputed(function() {
+				return result() || {};
+			});
+
+			return result;
+		};
+
+		var ViewModel = function(){
+			var PropertyCheck = function(){
+				this.selectedProperty = ko.observable();
+				this.tiltak = [ 'Bytte ut oljekjel', 'Kjøpe solfanger' ];
+				this.selectedPropertyComparison = ko.observable();
+				this.selectedPropertyValue = ko.observable();
+			};
+				this.properties = [ 'tiltak', 'fødselsnummer', 'bygningsnummer' ];
+
+			var self = this;
+			this.antallTidligereSøknader = ko.observable(1);
+			this.selectedPredicate = ko.observable();
+			this.predicates = ko.observableArray([{ id: 1, text: 'tidligere søknad(er)'}, { id: 2, text: 'denne søknad'}]);
+			this.comparisons = ['>=', '>', '=', '<', '<='];
+			this.selectedComparison = ko.observable();
+			this.propertyChecks = ko.observableArray( [new PropertyCheck()] );
+
+			this.addPropertyCheck = function(){
+				self.propertyChecks.push(new PropertyCheck());
+			};
+
+		};
+
+		viewModel = new ViewModel();
+
+		ko.applyBindings(viewModel);
+	</script>
+</body>
+</html>
